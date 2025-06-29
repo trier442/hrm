@@ -480,14 +480,15 @@
                 answersContainer.appendChild(answerEl);
             });
 
-            // FIX: 애니메이션 상태를 완전히 초기화하여 재시작 오류를 해결합니다.
-            // 1. 애니메이션 클래스를 제거합니다.
+            // FIX: 애니메이션 재시작 로직 수정
+            // 이전에 설정된 인라인 스타일(animation-play-state, animation-duration 등)을 모두 초기화합니다.
+            answersContainer.style.animation = '';
+
+            // 애니메이션 클래스를 제거했다가 다시 추가하여 애니메이션을 재시작합니다.
             answersContainer.classList.remove('falling');
-            // 2. 인라인 스타일로 설정된 모든 애니메이션 속성을 초기화합니다.
-            answersContainer.style.animation = 'none';
-            // 3. 브라우저가 변경된 스타일을 인지하도록 강제로 리플로우(reflow)를 발생시킵니다.
+            // 브라우저가 스타일 변경을 감지하도록 강제 리플로우(reflow)를 발생시킵니다.
             void answersContainer.offsetWidth;
-            // 4. 다시 애니메이션 클래스를 추가하여 애니메이션을 처음부터 시작합니다.
+            // 애니메이션 클래스를 다시 추가합니다.
             answersContainer.classList.add('falling');
         }
         
