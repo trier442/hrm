@@ -18,7 +18,7 @@
     <style>
         body {
             font-family: 'Jua', sans-serif;
-            touch-action: manipulation; /* 모바일에서 더블 탭 확대 방지 */
+            touch-action: manipulation;
         }
         #game-container {
             height: calc(var(--vh, 1vh) * 100);
@@ -43,7 +43,7 @@
             to { background-position: 0 70px; }
         }
         @keyframes fall {
-            from { transform: translateY(-150px); }
+            from { transform: translateY(-100px); }
             to { transform: translateY(100vh); }
         }
         .falling {
@@ -60,24 +60,30 @@
             transform: scale(0.9);
             pointer-events: none;
         }
-        #player-name-input, #chapter-select {
+        #player-name-input {
             border: 2px solid #6366f1;
             transition: border-color 0.3s;
         }
-        #player-name-input:focus, #chapter-select:focus {
+        #player-name-input:focus {
             outline: none;
             border-color: #a5b4fc;
+        }
+        .unit-btn.selected {
+            background-color: #f59e0b;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
         }
     </style>
 </head>
 <body class="bg-gray-800 flex items-center justify-center min-h-screen overflow-hidden">
 
+    <!-- 주 게임 컨테이너 -->
     <div id="game-container" class="w-full max-w-md bg-gray-600 rounded-lg shadow-2xl flex flex-col relative overflow-hidden border-4 border-gray-700">
         
         <!-- 상단 정보 바 (질문, 점수) -->
         <div class="bg-gray-900 text-white p-4 shadow-lg z-20">
             <div id="question" class="text-center text-lg md:text-xl min-h-[5rem] flex items-center justify-center px-2"></div>
-            <div id="player-info" class="absolute top-4 left-4 text-lg font-bold">Player: <span id="player-name-display"></span></div>
+            <div id="player-info" class="absolute top-4 left-4 text-lg font-bold hidden">Player: <span id="player-name-display"></span></div>
             <div class="absolute top-4 right-4 text-lg font-bold">점수: <span id="score">0</span></div>
         </div>
 
@@ -91,33 +97,26 @@
 
         <!-- 모바일 컨트롤 버튼 -->
         <div class="bg-gray-900 p-2 flex justify-center space-x-2 sm:hidden z-20">
-            <button id="move-left-btn" class="w-1/3 bg-indigo-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-indigo-700">◀</button>
-            <button id="move-forward-btn" class="w-1/3 bg-emerald-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-emerald-700">▲</button>
-            <button id="move-right-btn" class="w-1/3 bg-indigo-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-indigo-700">▶</button>
+            <button id="move-left-btn" class="w-1/3 bg-blue-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-blue-700">◀</button>
+            <button id="move-forward-btn" class="w-1/3 bg-green-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-green-700">▲</button>
+            <button id="move-right-btn" class="w-1/3 bg-blue-500 text-white font-bold py-4 px-4 rounded-lg text-2xl active:bg-blue-700">▶</button>
         </div>
 
         <!-- 시작 / 재시작 화면 모달 -->
         <div id="start-screen" class="modal absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-30 px-4">
-            <h1 id="start-title" class="text-5xl font-bold text-white mb-4 text-center">국어 퀴즈 드라이빙</h1>
-            <p id="start-desc" class="text-yellow-300 text-lg mb-6 text-center">정답을 향해 돌진하세요!</p>
+            <h1 id="start-title" class="text-5xl font-bold text-white mb-4 text-center">해솔라라중2 국어 퀴즈</h1>
+            <p id="start-desc" class="text-yellow-300 text-lg mb-6 text-center">단원을 선택하고 만점을 향해 질주하세요!</p>
             
-            <div class="w-full max-w-sm mb-4">
-                <label for="chapter-select" class="block text-white text-center mb-2">단원을 선택하세요</label>
-                <select id="chapter-select" class="w-full px-4 py-3 rounded-lg bg-gray-200 text-gray-800 text-center font-bold">
-                    <option value="">-- 단원 선택 --</option>
-                    <option value="chapter_1_1">1. (1) 엄마 걱정</option>
-                    <option value="chapter_1_2">1. (2) 동백꽃</option>
-                    <option value="chapter_2_1">2. (1) 읽기의 생활화</option>
-                    <option value="chapter_3_1">3. (1) 담화의 개념과 특성</option>
-                    <option value="chapter_4_1">4. (1) 먼 후일 / 독은 아름답다</option>
-                    <option value="chapter_4_2">4. (2) 양반전</option>
-                    <option value="chapter_4_3">4. (3) 다양한 표현 활용</option>
-                </select>
-            </div>
-
             <div id="name-input-container" class="w-full max-w-sm mb-4">
                 <label for="player-name-input" class="block text-white text-center mb-2">플레이어 이름을 입력하세요</label>
                 <input type="text" id="player-name-input" class="w-full px-4 py-2 rounded-lg bg-gray-200 text-gray-800 text-center font-bold" placeholder="이름" maxlength="10">
+            </div>
+
+            <div id="unit-selection-container" class="w-full max-w-sm mb-4">
+                <label class="block text-white text-center mb-2">퀴즈 단원을 선택하세요</label>
+                <div id="unit-buttons" class="grid grid-cols-2 gap-2">
+                    <!-- 단원 버튼은 JS로 생성됩니다 -->
+                </div>
             </div>
 
             <button id="start-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-2xl shadow-lg transform hover:scale-105 transition-transform">
@@ -126,7 +125,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         // --- DOM 요소 선택 ---
         const car = document.getElementById('car');
         const gameScreen = document.getElementById('game-screen');
@@ -144,7 +143,9 @@
         const playerNameInput = document.getElementById('player-name-input');
         const playerNameDisplay = document.getElementById('player-name-display');
         const playerInfo = document.getElementById('player-info');
-        const chapterSelect = document.getElementById('chapter-select');
+        const nameInputContainer = document.getElementById('name-input-container');
+        const unitSelectionContainer = document.getElementById('unit-selection-container');
+        const unitButtonsContainer = document.getElementById('unit-buttons');
 
         // --- 사운드 설정 ---
         let audioCtx;
@@ -177,218 +178,57 @@
         }
 
         // --- 퀴즈 데이터 ---
-        const allQuizzes = {
-            chapter_1_1: [ // 1-(1) 엄마 걱정
-                { question: "시에서 말하는 이, 즉 시인이 자신의 생각을 전달하기 위해 내세우는 대상을 무엇이라고 하나요?", answers: ["독자", "화자", "청자"], correct: 1 },
-                { question: "이 시의 화자는 누구인가요?", answers: ["어린 시절의 나", "시장에 간 엄마", "어른이 된 나"], correct: 2 },
-                { question: "화자가 처한 상황으로 가장 적절한 것은?", answers: ["혼자 엄마를 기다림", "친구와 놀고 있음", "시장에서 장사함"], correct: 0 },
-                { question: "'열무 삼십 단을 이고' 시장에 간 엄마에 대한 화자의 주된 정서는?", answers: ["자랑스러움", "안쓰러움과 그리움", "무관심"], correct: 1 },
-                { question: "'찬밥처럼 방에 담겨'라는 표현이 의미하는 것은?", answers: ["배가 고픔", "외롭게 홀로 남겨짐", "방이 매우 추움"], correct: 1 },
-                { question: "화자가 '배추잎 같은 발소리'를 들었을 때 느꼈을 감정은?", answers: ["안도감", "공포", "슬픔"], correct: 0 },
-                { question: "이 시에서 '해'가 저물고 '찬밥'이 되는 시간의 흐름은 무엇을 의미하나요?", answers: ["기다림의 즐거움", "기다림의 지루함과 고독", "엄마의 빠른 귀가"], correct: 1 },
-                { question: "'내 유년의 윗목'은 어떤 의미를 담고 있나요?", answers: ["따뜻하고 행복했던 어린 시절", "차갑고 서러웠던 어린 시절", "재미있게 놀던 장소"], correct: 1 },
-                { question: "이 시의 중심 소재가 아닌 것은?", answers: ["열무", "찬밥", "연"], correct: 2 },
-                { question: "이 시의 시간적 배경은 언제인가요?", answers: ["어느 여름날", "어느 겨울밤", "어느 가을 아침"], correct: 1 },
-                { question: "화자가 엄마를 기다리며 한 일이 아닌 것은?", answers: ["숙제를 함", "훌쩍거림", "가만히 있음"], correct: 0 },
-                { question: "이 시에서 '어머니'는 어떤 이미지로 그려지나요?", answers: ["자식을 위해 희생하는 모습", "자식에게 무관심한 모습", "엄격하고 무서운 모습"], correct: 0 },
-                { question: "이 시의 어조로 가장 적절한 것은?", answers: ["밝고 경쾌한 어조", "차분하고 애상적인 어조", "격정적이고 비판적인 어조"], correct: 1 },
-                { question: "이 시는 어떤 형식으로 구성되어 있나요?", answers: ["과거와 현재의 대비", "시간의 순서에 따른 전개", "공간의 이동에 따른 전개"], correct: 0 },
-                { question: "화자는 현재 시점에서 과거를 어떻게 바라보고 있나요?", answers: ["그리움과 안타까움", "분노와 원망", "후회와 반성"], correct: 0 },
-                { question: "'아무리 천천히 숙제를 해도' 라는 구절에서 알 수 있는 화자의 심정은?", answers: ["숙제가 너무 많다", "엄마가 빨리 오길 바란다", "공부하기 싫다"], correct: 1 },
-                { question: "이 시에 사용된 주된 심상은?", answers: ["시각적 심상", "청각적 심상", "촉각적 심상"], correct: 2 },
-                { question: "이 시의 제목 '엄마 걱정'은 누구의 입장에서 쓴 것일까요?", answers: ["엄마", "어른이 된 화자", "이웃 사람"], correct: 1 },
-                { question: "화자는 왜 '훌쩍거리'고 있었을까요?", answers: ["배가 고파서", "무섭고 외로워서", "엄마에게 혼나서"], correct: 1 },
-                { question: "이 시의 작가는 누구인가요?", answers: ["기형도", "윤동주", "김소월"], correct: 0 },
-                { question: "이 시에서 '방'은 화자에게 어떤 공간인가요?", answers: ["안전하고 포근한 공간", "춥고 외로운 공간", "재미있는 놀이 공간"], correct: 1 },
-                { question: "이 시의 주제 의식과 가장 가까운 것은?", answers: ["유년 시절의 아픈 기억과 어머니에 대한 그리움", "가난 극복에 대한 의지", "자연의 아름다움 예찬"], correct: 0 },
-                { question: "'배추잎 같은 발소리'는 어떤 표현 방법에 해당하나요?", answers: ["은유법", "직유법", "의인법"], correct: 1 },
-                { question: "화자를 달리하여 시를 쓸 때 달라지지 않는 것은?", answers: ["시의 정서", "시의 분위기", "시의 글자 수"], correct: 2 },
-                { question: "화자에 주목하여 시를 감상할 때 얻는 효과가 아닌 것은?", answers: ["작품을 깊이 있게 이해", "작가의 실제 삶을 파악", "화자의 정서를 파악"], correct: 1 }
-            ],
-            chapter_1_2: [ // 1-(2) 동백꽃
-                { question: "소설에서 독자에게 이야기를 전달하는 이를 무엇이라고 하나요?", answers: ["작가", "주인공", "서술자"], correct: 2 },
-                { question: "<동백꽃>의 서술자는 누구인가요?", answers: ["점순이", "나", "마을 사람"], correct: 1 },
-                { question: "이 소설의 서술자는 이야기 안의 인물인가요, 밖의 존재인가요?", answers: ["이야기 안의 인물", "이야기 밖의 존재", "알 수 없음"], correct: 0 },
-                { question: "서술자인 '나'의 성격으로 가장 적절한 것은?", answers: ["영리하고 눈치가 빠름", "순박하지만 눈치가 없음", "소심하고 내성적임"], correct: 1 },
-                { question: "점순이가 '나'에게 감자를 준 진짜 이유는 무엇인가요?", answers: ["'나'를 놀리기 위해", "'나'의 집이 가난해서", "'나'에게 호감이 있어서"], correct: 2 },
-                { question: "'나'가 점순이가 준 감자를 거절한 이유는 무엇인가요?", answers: ["감자를 싫어해서", "배가 불러서", "점순이가 생색낸다고 생각해서"], correct: 2 },
-                { question: "이 소설의 시간 구성 방식의 특징은 무엇인가요?", answers: ["시간 순서대로 진행", "현재-과거-현재 순서", "과거-현재-미래 순서"], correct: 1 },
-                { question: "점순이가 '나'의 닭과 자기 집 닭을 싸움 붙이는 이유는?", answers: ["닭싸움을 좋아해서", "'나'의 관심을 끌기 위해", "닭을 훈련시키기 위해"], correct: 1 },
-                { question: "소설의 배경이 되는 계절은 언제인가요?", answers: ["여름", "가을", "봄"], correct: 2 },
-                { question: "점순이와 '나'의 사회적 신분 관계는 어떻게 되나요?", answers: ["둘 다 양반", "점순: 마름의 딸, 나: 소작인의 아들", "점순: 소작인의 딸, 나: 마름의 아들"], correct: 1 },
-                { question: "'나'가 점순네 닭을 때려죽인 직접적인 이유는 무엇인가요?", answers: ["점순이가 미워서", "자기 닭이 거의 죽게 되자 화가 나서", "닭싸움을 말리려고"], correct: 1 },
-                { question: "닭을 죽인 후 '나'가 갑자기 운 이유는 무엇인가요?", answers: ["점순이에게 미안해서", "닭이 불쌍해서", "땅도 떨어지고 집에서 쫓겨날까 봐 무서워서"], correct: 2 },
-                { question: "점순이가 '나'에게 \"너 이담부텀 안 그럴 터냐?\"라고 물은 의도는?", answers: ["다시는 닭을 죽이지 말라는 뜻", "이제 내 마음을 몰라주지 않을 거냐는 뜻", "나랑 다시는 안 볼 거냐는 뜻"], correct: 1 },
-                { question: "소설의 결말에서 '동백꽃'이 하는 역할은 무엇인가요?", answers: ["갈등의 시작", "인물의 슬픔을 강조", "'나'와 점순이의 화해와 사랑"], correct: 2 },
-                { question: "서술자를 '나'로 설정하여 얻는 효과가 아닌 것은?", answers: ["해학적 분위기 형성", "점순이의 속마음을 직접 알 수 있음", "독자의 상상력을 자극함"], correct: 1 },
-                { question: "점순이가 '나'의 집 씨암탉을 때린 이유는 무엇인가요?", answers: ["닭이 알을 못 낳게 하려고", "감자를 거절한 '나'에게 복수하려고", "원래 성격이 포악해서"], correct: 1 },
-                { question: "'나'가 닭에게 고추장을 먹인 이유는 무엇인가요?", answers: ["닭의 병을 고치려고", "닭싸움에서 이기게 하려고", "닭을 맛있게 만들려고"], correct: 1 },
-                { question: "점순이가 '나'에게 \"이 바보 녀석아!\"라고 말한 이유는?", answers: ["정말 바보 같아서", "자신의 마음을 몰라주어 답답해서", "닭을 죽였기 때문에"], correct: 1 },
-                { question: "이 소설에서 '닭싸움'의 역할로 적절하지 않은 것은?", answers: ["갈등의 원인", "갈등의 해소 계기", "'나'와 점순이의 경제적 차이 부각"], correct: 2 },
-                { question: "서술자를 '점순'으로 바꾼다면 작품의 분위기는 어떻게 변할까요?", answers: ["더 해학적으로 변함", "해학성이 줄어듦", "변화 없음"], correct: 1 },
-                { question: "점순이의 성격으로 가장 적절한 것은?", answers: ["소극적, 내성적", "적극적, 당돌함", "차분함, 이성적"], correct: 1 },
-                { question: "어머니가 '나'에게 점순이와 붙어 다니지 말라고 한 이유는?", answers: ["점순이네가 싫어서", "신분 차이 때문에 문제가 생길까 봐", "공부에 방해될까 봐"], correct: 1 },
-                { question: "'나'가 점순이를 보고 '눈깔이 꼭 여우 새끼 같다'고 생각한 이유는?", answers: ["원래 그렇게 생각해서", "닭싸움을 시키고 태연하게 호드기를 부는 모습에 화가 나서", "눈이 작고 날카로워서"], correct: 1 },
-                { question: "결말 부분에서 '알싸한 그리고 향긋한 그 냄새'는 어떤 감각적 심상인가요?", answers: ["시각, 청각", "후각, 미각", "후각, 촉각"], correct: 2 },
-                { question: "이 작품의 작가 김유정의 특징으로 맞는 것은?", answers: ["도시의 삶을 주로 다룸", "토속적이고 해학적인 작품을 씀", "역사 소설을 주로 씀"], correct: 1 }
-            ],
-            chapter_2_1: [ // 2-(1) 읽기의 생활화
-                { question: "글쓴이가 중학교 2학년 때 했던 특별 활동은 무엇인가요?", answers: ["도서반", "산악반", "미술반"], correct: 1 },
-                { question: "글쓴이가 3학년 때 도서반을 선택한 이유는 무엇인가요?", answers: ["책 읽기를 좋아해서", "몸을 많이 움직이지 않으려고", "선생님의 추천으로"], correct: 1 },
-                { question: "도서반 담당 선생님이 제시한 활동 내용은 무엇이었나요?", answers: ["지정된 책 읽고 독후감 쓰기", "마음에 드는 책 골라 읽기", "도서관 서가 정리하기"], correct: 1 },
-                { question: "글쓴이가 도서반에서 처음 고른 책의 저자는 누구인가요?", answers: ["김만중", "허균", "박지원"], correct: 2 },
-                { question: "글쓴이가 박지원의 소설을 거부감 없이 읽을 수 있었던 이유는 무엇인가요?", answers: ["선생님이 재미있다고 해서", "무협지와 문체, 내용이 비슷해서", "친구가 강력 추천해서"], correct: 1 },
-                { question: "글쓴이가 느낀 무협지와 박지원 소설의 가장 큰 차이점은 무엇인가요?", answers: ["박지원 소설이 더 재미없다", "박지원 소설은 기억에 오래 남고 생각을 하게 만든다", "무협지가 더 교훈적이다"], correct: 1 },
-                { question: "글쓴이는 박지원의 소설을 읽으며 정신세계가 어떻게 되는 느낌을 받았다고 했나요?", answers: ["혼란스러워지는 느낌", "보약을 먹은 듯 넓고 높아지는 느낌", "잠이 오는 느낌"], correct: 1 },
-                { question: "글쓴이가 '맛있는 고전'이라고 표현한 것은 누구의 책인가요?", answers: ["자신이 쓴 책", "박지원의 책", "친구의 책"], correct: 1 },
-                { question: "중학교 3학년 때의 독서 경험이 글쓴이의 삶에 미친 가장 큰 영향은 무엇인가요?", answers: ["키가 크게 됨", "소설가가 되는 계기가 됨", "미술에 재능을 발견함"], correct: 1 },
-                { question: "글쓴이가 말하는 읽기의 가치로 적절하지 않은 것은?", answers: ["인간다운 삶의 길을 보여줌", "돈을 많이 벌게 해줌", "정신문화를 경험하게 함"], correct: 1 },
-                { question: "글쓴이는 책을 무엇에 비유하여 '진정한 인간으로 나아가는 통로'라고 표현했나요?", answers: ["다리", "보약", "통로"], correct: 2 },
-                { question: "이 글의 갈래는 무엇인가요?", answers: ["소설", "시", "수필"], correct: 2 },
-                { question: "글쓴이가 도서반에서 처음 읽은 박지원의 작품은 무엇이었나요?", answers: ["양반전", "호질", "허생전"], correct: 2 },
-                { question: "글쓴이가 박지원의 소설을 '보석처럼 단단하고 품위 있는 문장'이라고 표현한 이유는?", answers: ["실제로 보석이 들어있어서", "문장이 아름답고 가치가 높아서", "책이 비싸서"], correct: 1 },
-                { question: "글쓴이가 '몇백 년 전 글을 쓴 사람의 숨결'을 느꼈다는 것은 무슨 의미인가요?", answers: ["귀신을 봤다는 의미", "작품을 통해 작가와 교감했다는 의미", "책이 오래되어 냄새가 났다는 의미"], correct: 1 },
-                { question: "이 글의 제목 '맛있는 책, 일생의 보약'이 의미하는 바로 가장 적절한 것은?", answers: ["책은 실제로 맛있다", "좋은 책 읽기는 인생에 큰 도움이 된다", "보약은 책처럼 쓰다"], correct: 1 },
-                { question: "글쓴이가 산악반 활동을 좋아하지 않은 이유는 무엇일까요?", answers: ["선생님이 무서워서", "취향에 맞지 않아서", "친구가 없어서"], correct: 1 },
-                { question: "글쓴이가 고른 박지원의 책이 깨끗했던 이유는 무엇일까요?", answers: ["새 책이라서", "아이들이 거의 읽지 않아서", "선생님이 닦아놓아서"], correct: 1 },
-                { question: "글쓴이가 '읽으면 내 피와 살이 되는 고전'이라고 말한 이유는?", answers: ["읽으면 배가 불러서", "삶에 큰 도움이 되고 자양분이 되어서", "읽으면 건강해져서"], correct: 1 },
-                { question: "글쓴이에게 '특별하지 않은 특별 활동 시간'이 '아주 특별'하게 된 이유는?", answers: ["재미있는 친구를 사귀어서", "일생을 바꾼 책을 만났기 때문에", "선생님께 칭찬을 받아서"], correct: 1 },
-                { question: "읽기를 생활화하는 방법으로 적절하지 않은 것은?", answers: ["도서관 자주 가기", "독서 동아리 활동", "만화책만 읽기"], correct: 2 },
-                { question: "글쓴이가 살던 고향은 어떤 곳이었나요?", answers: ["바다가 보이는 곳", "사방이 산으로 둘러싸인 곳", "높은 빌딩이 많은 도시"], correct: 1 },
-                { question: "글쓴이가 전학 온 서울의 중학교는 어느 산 근처에 있었나요?", answers: ["북한산", "남산", "관악산"], correct: 2 },
-                { question: "이 글에서 강조하는 '읽기'의 가장 중요한 가치는 무엇인가요?", answers: ["성적 향상", "진정한 인간으로 성장", "많은 지식 암기"], correct: 1 },
-                { question: "글쓴이가 박지원의 소설을 읽고 '뿌듯함'을 느낀 이유는?", answers: ["책이 두꺼워서", "자랑스러운 우리 조상이 쓴 글이라서", "남들이 안 읽는 책이라서"], correct: 1 }
-            ],
-            chapter_3_1: [ // 3-(1) 담화의 개념과 특성
-                { question: "화자와 청자가 주고받는 발화의 연속체를 무엇이라고 하나요?", answers: ["문장", "단어", "담화"], correct: 2 },
-                { question: "머릿속 생각이 음성 언어로 나타난 것을 무엇이라고 하나요?", answers: ["담화", "발화", "맥락"], correct: 1 },
-                { question: "다음 중 담화의 구성 요소가 아닌 것은?", answers: ["화자", "청자", "속담"], correct: 2 },
-                { question: "발화들의 내용이 담화의 주제를 향해 밀접하게 연관되는 특성은 무엇인가요?", answers: ["응집성", "통일성", "상황성"], correct: 1 },
-                { question: "담화를 구성하는 발화들이 형식적으로 긴밀하게 연결되는 특성은 무엇인가요?", answers: ["통일성", "응집성", "문화성"], correct: 1 },
-                { question: "응집성을 높이기 위해 사용하는 것이 아닌 것은?", answers: ["지시 표현", "접속 표현", "어려운 한자어"], correct: 2 },
-                { question: "담화가 이루어지는 배경을 무엇이라고 하나요?", answers: ["내용", "주제", "맥락"], correct: 2 },
-                { question: "화자와 청자의 관계, 시간과 장소, 의도 등 장면 자체와 관련된 맥락은 무엇인가요?", answers: ["상황 맥락", "사회·문화적 맥락", "역사적 맥락"], correct: 0 },
-                { question: "역사적 배경, 공동체의 가치, 문화 등과 관련된 맥락은 무엇인가요?", answers: ["상황 맥락", "개인적 맥락", "사회·문화적 맥락"], correct: 2 },
-                { question: "버스 안에서 '내려요.'라는 말이 '문을 열어 주세요' 또는 '비켜 주세요' 등 다양하게 해석되는 것은 무엇 때문인가요?", answers: ["통일성", "응집성", "상황 맥락"], correct: 2 },
-                { question: "추석에 고향에 가는 것을 자연스럽게 여기는 것은 어떤 맥락과 관련이 깊나요?", answers: ["상황 맥락", "사회·문화적 맥락", "개인적 맥락"], correct: 1 },
-                { question: "다음 중 접속 표현에 해당하는 것은?", answers: ["이것", "저기", "그러나"], correct: 2 },
-                { question: "다음 중 지시 표현에 해당하는 것은?", answers: ["그리고", "그 사람", "하지만"], correct: 1 },
-                { question: "담화의 의미가 고정되어 있지 않고 맥락에 따라 달라질 수 있다는 설명은 맞나요?", answers: ["맞다", "틀리다", "상관없다"], correct: 0 },
-                { question: "글로 이루어진 담화를 무엇이라고 하나요?", answers: ["구어 담화", "문어 담화", "표준 담화"], correct: 1 },
-                { question: "신비의 말이 이해하기 어려운 이유는 무엇을 갖추지 못했기 때문인가요?", answers: ["통일성", "응집성", "진실성"], correct: 0 },
-                { question: "유나의 말이 이해하기 쉬운 이유는 무엇을 갖추었기 때문인가요?", answers: ["유머", "통일성", "과장"], correct: 1 },
-                { question: "외국인이 '차린 건 없지만 많이 먹으렴'이라는 말을 이해하기 어려운 이유는 어떤 맥락에 대한 이해가 부족하기 때문인가요?", answers: ["상황 맥락", "사회·문화적 맥락", "기술적 맥락"], correct: 1 },
-                { question: "담화의 '화자'는 말을 하는 사람이다. 맞으면 O, 틀리면 X", answers: ["O", "X", "모르겠다"], correct: 0 },
-                { question: "담화의 '청자'는 글을 쓰는 사람이다. 맞으면 O, 틀리면 X", answers: ["X", "O", "모르겠다"], correct: 0 },
-                { question: "원활한 의사소통을 위해 담화의 맥락을 고려할 필요가 있나요?", answers: ["있다", "없다", "상관없다"], correct: 0 },
-                { question: "다음 중 '하지만'과 같이 앞뒤 문장을 이어주는 접속 표현의 역할은?", answers: ["통일성 강화", "응집성 강화", "창의성 강화"], correct: 1 },
-                { question: "같은 발화라도 누가, 언제, 어디서 말하느냐에 따라 의미가 달라진다. 이와 관련된 맥락은?", answers: ["상황 맥락", "사회·문화적 맥락", "논리적 맥락"], correct: 0 },
-                { question: "분단이라는 우리나라의 '역사적·사회적 배경'을 알아야 이해할 수 있는 대화는 어떤 맥락에 해당하나요?", answers: ["상황 맥락", "사회·문화적 맥락", "정치적 맥락"], correct: 1 },
-                { question: "의미가 잘 전달되는 담화의 조건 두 가지는 무엇인가요?", answers: ["재미와 감동", "통일성과 응집성", "신속성과 정확성"], correct: 1 }
-            ],
-            chapter_4_1: [ // 4-(1) 먼 후일 / 독은 아름답다
-                { question: "시를 읽을 때 느껴지는 말의 가락을 무엇이라고 하나요?", answers: ["주제", "심상", "운율"], correct: 2 },
-                { question: "표현하려는 내용을 실제 의미와 반대로 표현하는 방법을 무엇이라고 하나요?", answers: ["역설", "반어", "풍자"], correct: 1 },
-                { question: "겉보기에는 모순되지만 그 속에 진실을 담고 있는 표현 방법은 무엇인가요?", answers: ["반어", "역설", "대조"], correct: 1 },
-                { question: "<먼 후일>의 주된 표현 방법은 무엇인가요?", answers: ["역설", "풍자", "반어"], correct: 2 },
-                { question: "<먼 후일>에서 '잊었노라'라는 시어에 담긴 화자의 진짜 속마음은 무엇인가요?", answers: ["정말로 잊었다", "잊고 싶다", "절대 잊을 수 없다"], correct: 2 },
-                { question: "<먼 후일>에서 운율을 형성하는 요소가 아닌 것은?", answers: ["3음보 반복", "같은 시어 반복", "4음보 반복"], correct: 2 },
-                { question: "<먼 후일>에서 화자는 미래의 어떤 상황을 가정하고 있나요?", answers: ["임과 다시 사랑하는 상황", "임이 자신을 찾아오는 상황", "임이 다른 사람과 결혼하는 상황"], correct: 1 },
-                { question: "<독은 아름답다>의 주된 표현 방법은 무엇인가요?", answers: ["반어", "역설", "직유"], correct: 1 },
-                { question: "<독은 아름답다>에서 '구린내가 향기롭다'고 말한 이유는 무엇인가요?", answers: ["정말 향기가 나서", "구린내가 열매를 보호하는 가치 있는 역할을 해서", "후각이 마비되어서"], correct: 1 },
-                { question: "<독은 아름답다>에서 '밤송이의 가시가 너그럽다'고 말한 이유는?", answers: ["가시가 부드러워서", "가시가 밤톨을 보호해주기 때문에", "가시가 없기 때문에"], correct: 1 },
-                { question: "<독은 아름답다>에서 '복어의 독'이 '사랑'이라고 한 이유는?", answers: ["독을 먹으면 사랑에 빠져서", "독이 복어의 알을 지켜주기 때문에", "독이 약으로 쓰여서"], correct: 1 },
-                { question: "<독은 아름답다>에서 '친구의 독한 마음이 아름답다'고 한 이유는?", answers: ["친구가 독하게 마음먹고 성공해서", "자식을 위해 술을 끊은 마음이 소중해서", "친구가 원래 독해서"], correct: 1 },
-                { question: "반어와 역설의 공통점으로 알맞은 것은?", answers: ["표현 자체에 모순이 있음", "의미를 강조하는 효과가 있음", "주로 웃음을 유발함"], correct: 1 },
-                { question: "다음 중 역설적 표현이 아닌 것은?", answers: ["소리 없는 아우성", "찬란한 슬픔의 봄", "죽어도 아니 눈물 흘리우리다"], correct: 2 },
-                { question: "<먼 후일>의 주제로 가장 적절한 것은?", answers: ["이별의 슬픔 극복 의지", "떠난 임에 대한 변치 않는 사랑", "새로운 사랑에 대한 기대"], correct: 1 },
-                { question: "<독은 아름답다>의 화자가 대상을 바라보는 태도는?", answers: ["일반적 통념을 뒤집어 가치를 발견함", "대상의 부정적인 면을 비판함", "대상을 객관적으로 관찰함"], correct: 0 },
-                { question: "운율의 효과로 적절하지 않은 것은?", answers: ["리듬감을 형성한다", "주제를 부각시킨다", "내용을 이해하기 어렵게 만든다"], correct: 2 },
-                { question: "반어법의 효과로 가장 적절한 것은?", answers: ["논리적인 인상을 준다", "화자의 의도를 반대로 표현해 강조한다", "표현 자체의 모순으로 진실을 드러낸다"], correct: 1 },
-                { question: "역설법의 효과로 가장 적절한 것은?", answers: ["독자의 주의를 끌고 참신한 느낌을 준다", "내용을 직설적으로 전달한다", "화자의 감정을 숨긴다"], correct: 0 },
-                { question: "<먼 후일>의 작가 김소월의 시의 주된 경향은?", answers: ["현실 비판", "민족의 정한(恨)", "도시적 감성"], correct: 1 },
-                { question: "'결별이 이룩하는 축복'이라는 표현은 어떤 기법에 해당하나요?", answers: ["반어", "역설", "풍자"], correct: 1 },
-                { question: "반어와 역설의 차이점은 무엇인가요?", answers: ["반어는 모순이 없고, 역설은 표현 자체에 모순이 있다", "반어는 시에만, 역설은 소설에만 쓰인다", "반어는 긍정적, 역설은 부정적 의미를 갖는다"], correct: 0 },
-                { question: "<독은 아름답다>의 1~4연에 공통적으로 나타나는 구조는?", answers: ["부정적 속성 -> 긍정적 가치 발견", "긍정적 속성 -> 부정적 가치 발견", "시간의 흐름에 따른 변화"], correct: 0 },
-                { question: "<먼 후일>에서 '오늘도 어제도 아니 잊고'라는 구절의 역할은?", answers: ["'잊었노라'가 반어임을 암시", "화자가 거짓말쟁이임을 증명", "시의 운율을 파괴"], correct: 0 },
-                { question: "<독은 아름답다>의 궁극적인 주제는 무엇과 관련이 깊은가요?", answers: ["자연 보호", "생명의 소중함과 사랑", "친구와의 우정"], correct: 1 }
-            ],
-            chapter_4_2: [ // 4-(2) 양반전
-                { question: "인물의 부정적인 면이나 사회의 부조리를 간접적으로 비판하며 웃음을 유발하는 표현 방법은?", answers: ["반어", "역설", "풍자"], correct: 2 },
-                { question: "<양반전>의 주된 비판 대상은 누구인가요?", answers: ["평민", "상인", "양반 계층"], correct: 2 },
-                { question: "소설 속 양반이 겪는 가장 큰 문제는 무엇이었나요?", answers: ["자존심 문제", "관아의 곡식을 갚지 못하는 것", "아내와의 불화"], correct: 1 },
-                { question: "양반의 아내가 '양반은 한 푼어치도 안 되는구려!'라고 말한 이유는?", answers: ["양반을 존경해서", "양반의 경제적 무능을 비판하며", "남편을 위로하려고"], correct: 1 },
-                { question: "마을의 부자가 양반 신분을 사려고 한 이유는 무엇인가요?", answers: ["양반이 불쌍해서", "평민으로서 겪는 수모를 벗어나고 싶어서", "군수의 명령 때문에"], correct: 1 },
-                { question: "군수가 양반 신분 매매 증서를 만들어 주겠다고 한 이유는?", answers: ["돈을 벌기 위해", "훗날 소송의 빌미가 될 것을 막기 위해", "부자가 불쌍해서"], correct: 1 },
-                { question: "첫 번째 매매 증서가 주로 다루고 있는 내용은 무엇인가요?", answers: ["양반이 누릴 수 있는 특권", "양반이 지켜야 할 허례허식", "돈 버는 방법"], correct: 1 },
-                { question: "첫 번째 증서의 내용을 들은 부자가 증서를 고쳐달라고 한 이유는?", answers: ["내용이 너무 어려워서", "자신에게 이익이 없다고 생각해서", "글씨가 마음에 안 들어서"], correct: 1 },
-                { question: "두 번째 매매 증서가 주로 다루고 있는 내용은 무엇인가요?", answers: ["양반의 의무", "양반의 부당한 특권과 횡포", "공부하는 방법"], correct: 1 },
-                { question: "두 번째 증서의 내용을 들은 부자가 양반 되기를 포기하며 양반을 무엇이라고 말했나요?", answers: ["신선", "도둑놈", "바보"], correct: 1 },
-                { question: "이 소설을 통해 알 수 있는 조선 후기 사회의 모습이 아닌 것은?", answers: ["신분제가 흔들리고 있었다", "돈으로 신분을 살 수 있었다", "양반의 권위가 매우 높았다"], correct: 2 },
-                { question: "첫 번째 매매 증서를 통해 작가가 풍자하려는 양반의 모습은?", answers: ["횡포를 부리는 모습", "허례허식에 얽매인 모습", "경제적으로 유능한 모습"], correct: 1 },
-                { question: "두 번째 매매 증서를 통해 작가가 풍자하려는 양반의 모습은?", answers: ["백성을 착취하는 부도덕한 모습", "학문에만 정진하는 모습", "체면을 중시하는 모습"], correct: 0 },
-                { question: "이 작품의 작가 박지원은 어떤 사상가 집단에 속했나요?", answers: ["주자학파", "북학파 실학자", "성리학파"], correct: 1 },
-                { question: "부자가 양반이 되기를 포기한 결정적인 이유는?", answers: ["양반이 되는 것이 너무 비싸서", "양반의 삶이 재미없어 보여서", "양반의 부도덕한 실체를 알게 되어서"], correct: 2 },
-                { question: "군수가 부자를 '군자답구나'라고 칭찬한 이유는 무엇인가요?", answers: ["정말로 훌륭해서", "부자의 돈을 이용하려고", "반어적으로 비꼬기 위해"], correct: 2 },
-                { question: "양반이 환자 문제로 곤경에 처했을 때 보인 태도는?", answers: ["적극적으로 해결책을 찾음", "밤낮으로 울기만 함", "부자에게 도움을 청함"], correct: 1 },
-                { question: "풍자의 효과로 적절하지 않은 것은?", answers: ["대상을 직접적으로 비판한다", "독자에게 웃음을 준다", "비판 의식을 갖게 한다"], correct: 0 },
-                { question: "이 소설에서 '양반'이라는 단어의 의미가 어떻게 변하나요?", answers: ["존경의 대상 -> 경멸의 대상", "경멸의 대상 -> 존경의 대상", "변화 없음"], correct: 0 },
-                { question: "군수가 양반과 부자를 관아에 부를 때, 누구를 더 높은 자리에 앉혔나요?", answers: ["양반", "부자", "같은 자리에 앉힘"], correct: 1 },
-                { question: "첫 번째 증서에 따르면, 양반은 아무리 더워도 무엇을 벗으면 안되나요?", answers: ["갓", "두루마기", "버선"], correct: 2 },
-                { question: "두 번째 증서에 따르면, 양반은 이웃집의 무엇을 마음대로 가져다 쓸 수 있나요?", answers: ["닭", "소", "농기구"], correct: 1 },
-                { question: "이 작품의 공간적 배경은 어디인가요?", answers: ["강원도 정선군", "한양", "평안도"], correct: 0 },
-                { question: "작가는 양반의 모습을 우스꽝스럽게 그려냄으로써 무엇을 유발하나요?", answers: ["슬픔", "해학(웃음)", "공포"], correct: 1 },
-                { question: "결국 이 소설은 조선 시대 어떤 제도의 문제점을 비판하고 있나요?", answers: ["과거 제도", "신분 제도", "조세 제도"], correct: 1 }
-            ],
-            chapter_4_3: [ // 4-(3) 다양한 표현 활용
-                { question: "글을 쓸 때 다양한 표현을 사용하면 얻는 효과가 아닌 것은?", answers: ["내용을 참신하게 드러냄", "글의 분량을 늘릴 수 있음", "읽는 이의 기억에 오래 남음"], correct: 1 },
-                { question: "다음 중 속담에 해당하는 것은?", answers: ["발이 넓다", "가는 날이 장날이다", "그림의 떡"], correct: 1 },
-                { question: "다음 중 관용구에 해당하는 것은?", answers: ["손이 크다", "원숭이도 나무에서 떨어진다", "하늘의 별 따기"], correct: 0 },
-                { question: "'몹시 안타깝고 초조하다'는 의미의 관용구는?", answers: ["애가 타다", "입이 무겁다", "눈이 높다"], correct: 0 },
-                { question: "다음 문장에서 사용된 표현법은? '내 마음은 호수요.'", answers: ["직유법", "은유법", "의인법"], correct: 1 },
-                { question: "글쓴이가 슬기가 없어 외롭다는 마음을 무엇에 비유했나요?", answers: ["참외", "김빠진 탄산음료", "그림자"], correct: 0 },
-                { question: "참신한 표현을 만들기 위한 방법으로 적절하지 않은 것은?", answers: ["낯설게 보기", "다른 사람의 표현을 그대로 따라 쓰기", "자신만의 개성적인 비유 사용하기"], correct: 1 },
-                { question: "명언을 인용했을 때의 효과로 가장 적절한 것은?", answers: ["글의 신뢰성과 설득력을 높인다", "글을 더 재미있게 만든다", "글의 길이를 짧게 줄인다"], correct: 0 },
-                { question: "'남을 지나치게 칭찬하거나 추어올려 주다'라는 의미의 관용구는?", answers: ["발이 넓다", "손이 크다", "비행기를 태우다"], correct: 2 },
-                { question: "글쓴이가 슬기가 없는 축구 경기를 무엇에 비유했나요?", answers: ["참외", "김빠진 탄산음료", "그림자"], correct: 1 },
-                { question: "'슬픔'을 '길다'고 표현한 시의 구절은 어떤 표현 방식에 해당하나요?", answers: ["추상적 개념의 구체화", "반어법", "역설법"], correct: 0 },
-                { question: "글쓰기에서 '관용 표현'을 사용하는 주된 이유는?", answers: ["생각이나 느낌을 간결하고 효과적으로 표현하기 위해", "글을 어렵게 만들어 유식해 보이기 위해", "문법에 맞는 글을 쓰기 위해"], correct: 0 },
-                { question: "다음 중 격언(명언)에 해당하는 것은?", answers: ["시간은 금이다", "발 없는 말이 천 리 간다", "국물이 끝내줘요"], correct: 0 },
-                { question: "글쓴이는 슬기를 '흥 부자'라고 불렀습니다. 이 표현의 의미는 무엇일까요?", answers: ["돈이 많은 부자", "흥이 많은 사람", "노래를 잘하는 사람"], correct: 1 },
-                { question: "글쓴이가 다리를 다쳤을 때 슬기가 늘 곁에 있었던 모습을 무엇에 비유했나요?", answers: ["그림자", "천사", "보디가드"], correct: 0 },
-                { question: "다음 중 긍정적 의미로 사용되는 관용구가 아닌 것은?", answers: ["손발이 맞다", "바가지를 긁다", "눈에 콩깍지가 씌다"], correct: 1 },
-                { question: "속담 '백지장도 맞들면 낫다'의 의미는?", answers: ["협동의 중요성", "청결의 중요성", "정직의 중요성"], correct: 0 },
-                { question: "다음 중 비유적 표현이 사용되지 않은 문장은?", answers: ["구름은 흰 양 떼처럼 떠다녔다", "그는 거북이처럼 느리다", "나는 오늘 학교에 갔다"], correct: 2 },
-                { question: "글의 표현을 다채롭게 하기 위한 방법으로 거리가 먼 것은?", answers: ["다양한 어휘 사용", "한 가지 문장 구조 반복", "속담, 격언 활용"], correct: 1 },
-                { question: "'매우 기쁘다'는 뜻을 가진 관용구로 적절한 것은?", answers: ["가슴을 치다", "날아갈 듯하다", "기가 막히다"], correct: 1 },
-                { question: "글쓴이가 편지 말미에 인용한 명언의 내용은 무엇에 대한 것인가요?", answers: ["우정의 소중함", "시간의 중요성", "직접 만나 나누는 대화의 가치"], correct: 2 },
-                { question: "자신의 생각을 효과적으로 전달하기 위해 사용하는 표현 전략이 아닌 것은?", answers: ["비유하기", "인용하기", "과장하기"], correct: 2 },
-                { question: "다음 중 '참신한 표현'의 예로 가장 적절한 것은?", answers: ["사과 같은 내 얼굴", "내 동생은 잠꾸러기다", "내 그리움은 전파를 타고 간다"], correct: 2 },
-                { question: "'발이 넓다'는 관용구의 뜻은?", answers: ["발이 크다", "사귀어 아는 사람이 많다", "걸음이 빠르다"], correct: 1 },
-                { question: "다양한 표현을 사용한 글의 장점으로 옳지 않은 것은?", answers: ["독자의 이해를 돕는다", "표현하고자 하는 바를 정확하게 전달한다", "글을 이해하기 어렵게 만든다"], correct: 2 }
-            ]
+        const allQuizData = {
+            chapter_1_1: {
+                name: "1. (1) 엄마 걱정",
+                questions: [ { question: "시에서 말하는 이, 즉 시인이 자신의 생각을 전달하기 위해 내세우는 대상을 무엇이라고 하나요?", answers: ["독자", "화자", "청자"], correct: 1 }, { question: "이 시의 화자는 누구인가요?", answers: ["어린 시절의 나", "시장에 간 엄마", "어른이 된 나"], correct: 2 }, { question: "화자가 처한 상황으로 가장 적절한 것은?", answers: ["혼자 엄마를 기다림", "친구와 놀고 있음", "시장에서 장사함"], correct: 0 }, { question: "'열무 삼십 단을 이고' 시장에 간 엄마에 대한 화자의 주된 정서는?", answers: ["자랑스러움", "안쓰러움과 그리움", "무관심"], correct: 1 }, { question: "'찬밥처럼 방에 담겨'라는 표현이 의미하는 것은?", answers: ["배가 고픔", "외롭게 홀로 남겨짐", "방이 매우 추움"], correct: 1 }, { question: "화자가 '배추잎 같은 발소리'를 들었을 때 느꼈을 감정은?", answers: ["안도감", "공포", "슬픔"], correct: 0 }, { question: "이 시에서 '해'가 저물고 '찬밥'이 되는 시간의 흐름은 무엇을 의미하나요?", answers: ["기다림의 즐거움", "기다림의 지루함과 고독", "엄마의 빠른 귀가"], correct: 1 }, { question: "'내 유년의 윗목'은 어떤 의미를 담고 있나요?", answers: ["따뜻하고 행복했던 어린 시절", "차갑고 서러웠던 어린 시절", "재미있게 놀던 장소"], correct: 1 }, { question: "이 시의 중심 소재가 아닌 것은?", answers: ["열무", "찬밥", "연"], correct: 2 }, { question: "이 시의 시간적 배경은 언제인가요?", answers: ["어느 여름날", "어느 겨울밤", "어느 가을 아침"], correct: 1 }, { question: "화자가 엄마를 기다리며 한 일이 아닌 것은?", answers: ["숙제를 함", "훌쩍거림", "가만히 있음"], correct: 0 }, { question: "이 시에서 '어머니'는 어떤 이미지로 그려지나요?", answers: ["자식을 위해 희생하는 모습", "자식에게 무관심한 모습", "엄격하고 무서운 모습"], correct: 0 }, { question: "이 시의 어조로 가장 적절한 것은?", answers: ["밝고 경쾌한 어조", "차분하고 애상적인 어조", "격정적이고 비판적인 어조"], correct: 1 }, { question: "이 시는 어떤 형식으로 구성되어 있나요?", answers: ["과거와 현재의 대비", "시간의 순서에 따른 전개", "공간의 이동에 따른 전개"], correct: 0 }, { question: "화자는 현재 시점에서 과거를 어떻게 바라보고 있나요?", answers: ["그리움과 안타까움", "분노와 원망", "후회와 반성"], correct: 0 }, { question: "'아무리 천천히 숙제를 해도' 라는 구절에서 알 수 있는 화자의 심정은?", answers: ["숙제가 너무 많다", "엄마가 빨리 오길 바란다", "공부하기 싫다"], correct: 1 }, { question: "이 시에 사용된 주된 심상은?", answers: ["시각적 심상", "청각적 심상", "촉각적 심상"], correct: 2 }, { question: "이 시의 제목 '엄마 걱정'은 누구의 입장에서 쓴 것일까요?", answers: ["엄마", "어른이 된 화자", "이웃 사람"], correct: 1 }, { question: "화자는 왜 '훌쩍거리'고 있었을까요?", answers: ["배가 고파서", "무섭고 외로워서", "엄마에게 혼나서"], correct: 1 }, { question: "이 시의 작가는 누구인가요?", answers: ["기형도", "윤동주", "김소월"], correct: 0 }, { question: "이 시에서 '방'은 화자에게 어떤 공간인가요?", answers: ["안전하고 포근한 공간", "춥고 외로운 공간", "재미있는 놀이 공간"], correct: 1 }, { question: "이 시의 주제 의식과 가장 가까운 것은?", answers: ["유년 시절의 아픈 기억과 어머니에 대한 그리움", "가난 극복에 대한 의지", "자연의 아름다움 예찬"], correct: 0 }, { question: "'배추잎 같은 발소리'는 어떤 표현 방법에 해당하나요?", answers: ["은유법", "직유법", "의인법"], correct: 1 }, { question: "화자를 달리하여 시를 쓸 때 달라지지 않는 것은?", answers: ["시의 정서", "시의 분위기", "시의 글자 수"], correct: 2 }, { question: "화자에 주목하여 시를 감상할 때 얻는 효과가 아닌 것은?", answers: ["작품을 깊이 있게 이해", "작가의 실제 삶을 파악", "화자의 정서를 파악"], correct: 1 }]
+            },
+            chapter_1_2: {
+                name: "1. (2) 동백꽃",
+                questions: [ { question: "소설에서 독자에게 이야기를 전달하는 이를 무엇이라고 하나요?", answers: ["작가", "주인공", "서술자"], correct: 2 }, { question: "<동백꽃>의 서술자는 누구인가요?", answers: ["점순이", "나", "마을 사람"], correct: 1 }, { question: "이 소설의 서술자는 이야기 안의 인물인가요, 밖의 존재인가요?", answers: ["이야기 안의 인물", "이야기 밖의 존재", "알 수 없음"], correct: 0 }, { question: "서술자인 '나'의 성격으로 가장 적절한 것은?", answers: ["영리하고 눈치가 빠름", "순박하지만 눈치가 없음", "소심하고 내성적임"], correct: 1 }, { question: "점순이가 '나'에게 감자를 준 진짜 이유는 무엇인가요?", answers: ["'나'를 놀리기 위해", "'나'의 집이 가난해서", "'나'에게 호감이 있어서"], correct: 2 }, { question: "'나'가 점순이가 준 감자를 거절한 이유는 무엇인가요?", answers: ["감자를 싫어해서", "배가 불러서", "점순이가 생색낸다고 생각해서"], correct: 2 }, { question: "이 소설의 시간 구성 방식의 특징은 무엇인가요?", answers: ["시간 순서대로 진행", "현재-과거-현재 순서", "과거-현재-미래 순서"], correct: 1 }, { question: "점순이가 '나'의 닭과 자기 집 닭을 싸움 붙이는 이유는?", answers: ["닭싸움을 좋아해서", "'나'의 관심을 끌기 위해", "닭을 훈련시키기 위해"], correct: 1 }, { question: "소설의 배경이 되는 계절은 언제인가요?", answers: ["여름", "가을", "봄"], correct: 2 }, { question: "점순이와 '나'의 사회적 신분 관계는 어떻게 되나요?", answers: ["둘 다 양반", "점순: 마름의 딸, 나: 소작인의 아들", "점순: 소작인의 딸, 나: 마름의 아들"], correct: 1 }, { question: "'나'가 점순네 닭을 때려죽인 직접적인 이유는 무엇인가요?", answers: ["점순이가 미워서", "자기 닭이 거의 죽게 되자 화가 나서", "닭싸움을 말리려고"], correct: 1 }, { question: "닭을 죽인 후 '나'가 갑자기 운 이유는 무엇인가요?", answers: ["점순이에게 미안해서", "닭이 불쌍해서", "땅도 떨어지고 집에서 쫓겨날까 봐 무서워서"], correct: 2 }, { question: "점순이가 '나'에게 \"너 이담부텀 안 그럴 터냐?\"라고 물은 의도는?", answers: ["다시는 닭을 죽이지 말라는 뜻", "이제 내 마음을 몰라주지 않을 거냐는 뜻", "나랑 다시는 안 볼 거냐는 뜻"], correct: 1 }, { question: "소설의 결말에서 '동백꽃'이 하는 역할은 무엇인가요?", answers: ["갈등의 시작", "인물의 슬픔을 강조", "'나'와 점순이의 화해와 사랑"], correct: 2 }, { question: "서술자를 '나'로 설정하여 얻는 효과가 아닌 것은?", answers: ["해학적 분위기 형성", "점순이의 속마음을 직접 알 수 있음", "독자의 상상력을 자극함"], correct: 1 }, { question: "점순이가 '나'의 집 씨암탉을 때린 이유는 무엇인가요?", answers: ["닭이 알을 못 낳게 하려고", "감자를 거절한 '나'에게 복수하려고", "원래 성격이 포악해서"], correct: 1 }, { question: "'나'가 닭에게 고추장을 먹인 이유는 무엇인가요?", answers: ["닭의 병을 고치려고", "닭싸움에서 이기게 하려고", "닭을 맛있게 만들려고"], correct: 1 }, { question: "점순이가 '나'에게 \"이 바보 녀석아!\"라고 말한 이유는?", answers: ["정말 바보 같아서", "자신의 마음을 몰라주어 답답해서", "닭을 죽였기 때문에"], correct: 1 }, { question: "이 소설에서 '닭싸움'의 역할로 적절하지 않은 것은?", answers: ["갈등의 원인", "갈등의 해소 계기", "'나'와 점순이의 경제적 차이 부각"], correct: 2 }, { question: "서술자를 '점순'으로 바꾼다면 작품의 분위기는 어떻게 변할까요?", answers: ["더 해학적으로 변함", "해학성이 줄어듦", "변화 없음"], correct: 1 }, { question: "점순이의 성격으로 가장 적절한 것은?", answers: ["소극적, 내성적", "적극적, 당돌함", "차분함, 이성적"], correct: 1 }, { question: "어머니가 '나'에게 점순이와 붙어 다니지 말라고 한 이유는?", answers: ["점순이네가 싫어서", "신분 차이 때문에 문제가 생길까 봐", "공부에 방해될까 봐"], correct: 1 }, { question: "'나'가 점순이를 보고 '눈깔이 꼭 여우 새끼 같다'고 생각한 이유는?", answers: ["원래 그렇게 생각해서", "닭싸움을 시키고 태연하게 호드기를 부는 모습에 화가 나서", "눈이 작고 날카로워서"], correct: 1 }, { question: "결말 부분에서 '알싸한 그리고 향긋한 그 냄새'는 어떤 감각적 심상인가요?", answers: ["시각, 청각", "후각, 미각", "후각, 촉각"], correct: 2 }, { question: "이 작품의 작가 김유정의 특징으로 맞는 것은?", answers: ["도시의 삶을 주로 다룸", "토속적이고 해학적인 작품을 씀", "역사 소설을 주로 씀"], correct: 1 }]
+            },
+            chapter_2_1: {
+                name: "2. (1) 읽기의 생활화",
+                questions: [ { question: "글쓴이가 중학교 2학년 때 했던 특별 활동은 무엇인가요?", answers: ["도서반", "산악반", "미술반"], correct: 1 }, { question: "글쓴이가 3학년 때 도서반을 선택한 이유는 무엇인가요?", answers: ["책 읽기를 좋아해서", "몸을 많이 움직이지 않으려고", "선생님의 추천으로"], correct: 1 }, { question: "도서반 담당 선생님이 제시한 활동 내용은 무엇이었나요?", answers: ["지정된 책 읽고 독후감 쓰기", "마음에 드는 책 골라 읽기", "도서관 서가 정리하기"], correct: 1 }, { question: "글쓴이가 도서반에서 처음 고른 책의 저자는 누구인가요?", answers: ["김만중", "허균", "박지원"], correct: 2 }, { question: "글쓴이가 박지원의 소설을 거부감 없이 읽을 수 있었던 이유는 무엇인가요?", answers: ["선생님이 재미있다고 해서", "무협지와 문체, 내용이 비슷해서", "친구가 강력 추천해서"], correct: 1 }, { question: "글쓴이가 느낀 무협지와 박지원 소설의 가장 큰 차이점은 무엇인가요?", answers: ["박지원 소설이 더 재미없다", "박지원 소설은 기억에 오래 남고 생각을 하게 만든다", "무협지가 더 교훈적이다"], correct: 1 }, { question: "글쓴이는 박지원의 소설을 읽으며 정신세계가 어떻게 되는 느낌을 받았다고 했나요?", answers: ["혼란스러워지는 느낌", "보약을 먹은 듯 넓고 높아지는 느낌", "잠이 오는 느낌"], correct: 1 }, { question: "글쓴이가 '맛있는 고전'이라고 표현한 것은 누구의 책인가요?", answers: ["자신이 쓴 책", "박지원의 책", "친구의 책"], correct: 1 }, { question: "중학교 3학년 때의 독서 경험이 글쓴이의 삶에 미친 가장 큰 영향은 무엇인가요?", answers: ["키가 크게 됨", "소설가가 되는 계기가 됨", "미술에 재능을 발견함"], correct: 1 }, { question: "글쓴이가 말하는 읽기의 가치로 적절하지 않은 것은?", answers: ["인간다운 삶의 길을 보여줌", "돈을 많이 벌게 해줌", "정신문화를 경험하게 함"], correct: 1 }, { question: "글쓴이는 책을 무엇에 비유하여 '진정한 인간으로 나아가는 통로'라고 표현했나요?", answers: ["다리", "보약", "통로"], correct: 2 }, { question: "이 글의 갈래는 무엇인가요?", answers: ["소설", "시", "수필"], correct: 2 }, { question: "글쓴이가 도서반에서 처음 읽은 박지원의 작품은 무엇이었나요?", answers: ["양반전", "호질", "허생전"], correct: 2 }, { question: "글쓴이가 박지원의 소설을 '보석처럼 단단하고 품위 있는 문장'이라고 표현한 이유는?", answers: ["실제로 보석이 들어있어서", "문장이 아름답고 가치가 높아서", "책이 비싸서"], correct: 1 }, { question: "글쓴이가 '몇백 년 전 글을 쓴 사람의 숨결'을 느꼈다는 것은 무슨 의미인가요?", answers: ["귀신을 봤다는 의미", "작품을 통해 작가와 교감했다는 의미", "책이 오래되어 냄새가 났다는 의미"], correct: 1 }, { question: "이 글의 제목 '맛있는 책, 일생의 보약'이 의미하는 바로 가장 적절한 것은?", answers: ["책은 실제로 맛있다", "좋은 책 읽기는 인생에 큰 도움이 된다", "보약은 책처럼 쓰다"], correct: 1 }, { question: "글쓴이가 산악반 활동을 좋아하지 않은 이유는 무엇일까요?", answers: ["선생님이 무서워서", "취향에 맞지 않아서", "친구가 없어서"], correct: 1 }, { question: "글쓴이가 고른 박지원의 책이 깨끗했던 이유는 무엇일까요?", answers: ["새 책이라서", "아이들이 거의 읽지 않아서", "선생님이 닦아놓아서"], correct: 1 }, { question: "글쓴이가 '읽으면 내 피와 살이 되는 고전'이라고 말한 이유는?", answers: ["읽으면 배가 불러서", "삶에 큰 도움이 되고 자양분이 되어서", "읽으면 건강해져서"], correct: 1 }, { question: "글쓴이에게 '특별하지 않은 특별 활동 시간'이 '아주 특별'하게 된 이유는?", answers: ["재미있는 친구를 사귀어서", "일생을 바꾼 책을 만났기 때문에", "선생님께 칭찬을 받아서"], correct: 1 }, { question: "읽기를 생활화하는 방법으로 적절하지 않은 것은?", answers: ["도서관 자주 가기", "독서 동아리 활동", "만화책만 읽기"], correct: 2 }, { question: "글쓴이가 살던 고향은 어떤 곳이었나요?", answers: ["바다가 보이는 곳", "사방이 산으로 둘러싸인 곳", "높은 빌딩이 많은 도시"], correct: 1 }, { question: "글쓴이가 전학 온 서울의 중학교는 어느 산 근처에 있었나요?", answers: ["북한산", "남산", "관악산"], correct: 2 }, { question: "이 글에서 강조하는 '읽기'의 가장 중요한 가치는 무엇인가요?", answers: ["성적 향상", "진정한 인간으로 성장", "많은 지식 암기"], correct: 1 }, { question: "글쓴이가 박지원의 소설을 읽고 '뿌듯함'을 느낀 이유는?", answers: ["책이 두꺼워서", "자랑스러운 우리 조상이 쓴 글이라서", "남들이 안 읽는 책이라서"], correct: 1 }]
+            },
+            chapter_3_1: {
+                name: "3. (1) 담화",
+                questions: [ { question: "화자와 청자가 주고받는 발화의 연속체를 무엇이라고 하나요?", answers: ["문장", "단어", "담화"], correct: 2 }, { question: "머릿속 생각이 음성 언어로 나타난 것을 무엇이라고 하나요?", answers: ["담화", "발화", "맥락"], correct: 1 }, { question: "다음 중 담화의 구성 요소가 아닌 것은?", answers: ["화자", "청자", "속담"], correct: 2 }, { question: "발화들의 내용이 담화의 주제를 향해 밀접하게 연관되는 특성은 무엇인가요?", answers: ["응집성", "통일성", "상황성"], correct: 1 }, { question: "담화를 구성하는 발화들이 형식적으로 긴밀하게 연결되는 특성은 무엇인가요?", answers: ["통일성", "응집성", "문화성"], correct: 1 }, { question: "응집성을 높이기 위해 사용하는 것이 아닌 것은?", answers: ["지시 표현", "접속 표현", "어려운 한자어"], correct: 2 }, { question: "담화가 이루어지는 배경을 무엇이라고 하나요?", answers: ["내용", "주제", "맥락"], correct: 2 }, { question: "화자와 청자의 관계, 시간과 장소, 의도 등 장면 자체와 관련된 맥락은 무엇인가요?", answers: ["상황 맥락", "사회·문화적 맥락", "역사적 맥락"], correct: 0 }, { question: "역사적 배경, 공동체의 가치, 문화 등과 관련된 맥락은 무엇인가요?", answers: ["상황 맥락", "개인적 맥락", "사회·문화적 맥락"], correct: 2 }, { question: "버스 안에서 '내려요.'라는 말이 '문을 열어 주세요' 또는 '비켜 주세요' 등 다양하게 해석되는 것은 무엇 때문인가요?", answers: ["통일성", "응집성", "상황 맥락"], correct: 2 }, { question: "추석에 고향에 가는 것을 자연스럽게 여기는 것은 어떤 맥락과 관련이 깊나요?", answers: ["상황 맥락", "사회·문화적 맥락", "개인적 맥락"], correct: 1 }, { question: "다음 중 접속 표현에 해당하는 것은?", answers: ["이것", "저기", "그러나"], correct: 2 }, { question: "다음 중 지시 표현에 해당하는 것은?", answers: ["그리고", "그 사람", "하지만"], correct: 1 }, { question: "담화의 의미가 고정되어 있지 않고 맥락에 따라 달라질 수 있다는 설명은 맞나요?", answers: ["맞다", "틀리다", "상관없다"], correct: 0 }, { question: "글로 이루어진 담화를 무엇이라고 하나요?", answers: ["구어 담화", "문어 담화", "표준 담화"], correct: 1 }, { question: "신비의 말이 이해하기 어려운 이유는 무엇을 갖추지 못했기 때문인가요?", answers: ["통일성", "응집성", "진실성"], correct: 0 }, { question: "유나의 말이 이해하기 쉬운 이유는 무엇을 갖추었기 때문인가요?", answers: ["유머", "통일성", "과장"], correct: 1 }, { question: "외국인이 '차린 건 없지만 많이 먹으렴'이라는 말을 이해하기 어려운 이유는 어떤 맥락에 대한 이해가 부족하기 때문인가요?", answers: ["상황 맥락", "사회·문화적 맥락", "기술적 맥락"], correct: 1 }, { question: "담화의 '화자'는 말을 하는 사람이다. 맞으면 O, 틀리면 X", answers: ["O", "X", "모르겠다"], correct: 0 }, { question: "담화의 '청자'는 글을 쓰는 사람이다. 맞으면 O, 틀리면 X", answers: ["X", "O", "모르겠다"], correct: 0 }, { question: "원활한 의사소통을 위해 담화의 맥락을 고려할 필요가 있나요?", answers: ["있다", "없다", "상관없다"], correct: 0 }, { question: "다음 중 '하지만'과 같이 앞뒤 문장을 이어주는 접속 표현의 역할은?", answers: ["통일성 강화", "응집성 강화", "창의성 강화"], correct: 1 }, { question: "같은 발화라도 누가, 언제, 어디서 말하느냐에 따라 의미가 달라진다. 이와 관련된 맥락은?", answers: ["상황 맥락", "사회·문화적 맥락", "논리적 맥락"], correct: 0 }, { question: "분단이라는 우리나라의 '역사적·사회적 배경'을 알아야 이해할 수 있는 대화는 어떤 맥락에 해당하나요?", answers: ["상황 맥락", "사회·문화적 맥락", "정치적 맥락"], correct: 1 }, { question: "의미가 잘 전달되는 담화의 조건 두 가지는 무엇인가요?", answers: ["재미와 감동", "통일성과 응집성", "신속성과 정확성"], correct: 1 }]
+            },
+            chapter_4_1: {
+                name: "4. (1) 창의적 표현",
+                questions: [ { question: "시를 읽을 때 느껴지는 말의 가락을 무엇이라고 하나요?", answers: ["주제", "심상", "운율"], correct: 2 }, { question: "표현하려는 내용을 실제 의미와 반대로 표현하는 방법을 무엇이라고 하나요?", answers: ["역설", "반어", "풍자"], correct: 1 }, { question: "겉보기에는 모순되지만 그 속에 진실을 담고 있는 표현 방법은 무엇인가요?", answers: ["반어", "역설", "대조"], correct: 1 }, { question: "<먼 후일>의 주된 표현 방법은 무엇인가요?", answers: ["역설", "풍자", "반어"], correct: 2 }, { question: "<먼 후일>에서 '잊었노라'라는 시어에 담긴 화자의 진짜 속마음은 무엇인가요?", answers: ["정말로 잊었다", "잊고 싶다", "절대 잊을 수 없다"], correct: 2 }, { question: "<먼 후일>에서 운율을 형성하는 요소가 아닌 것은?", answers: ["3음보 반복", "같은 시어 반복", "4음보 반복"], correct: 2 }, { question: "<먼 후일>에서 화자는 미래의 어떤 상황을 가정하고 있나요?", answers: ["임과 다시 사랑하는 상황", "임이 자신을 찾아오는 상황", "임이 다른 사람과 결혼하는 상황"], correct: 1 }, { question: "<독은 아름답다>의 주된 표현 방법은 무엇인가요?", answers: ["반어", "역설", "직유"], correct: 1 }, { question: "<독은 아름답다>에서 '구린내가 향기롭다'고 말한 이유는 무엇인가요?", answers: ["정말 향기가 나서", "구린내가 열매를 보호하는 가치 있는 역할을 해서", "후각이 마비되어서"], correct: 1 }, { question: "<독은 아름답다>에서 '밤송이의 가시가 너그럽다'고 말한 이유는?", answers: ["가시가 부드러워서", "가시가 밤톨을 보호해주기 때문에", "가시가 없기 때문에"], correct: 1 }, { question: "<독은 아름답다>에서 '복어의 독'이 '사랑'이라고 한 이유는?", answers: ["독을 먹으면 사랑에 빠져서", "독이 복어의 알을 지켜주기 때문에", "독이 약으로 쓰여서"], correct: 1 }, { question: "<독은 아름답다>에서 '친구의 독한 마음이 아름답다'고 한 이유는?", answers: ["친구가 독하게 마음먹고 성공해서", "자식을 위해 술을 끊은 마음이 소중해서", "친구가 원래 독해서"], correct: 1 }, { question: "반어와 역설의 공통점으로 알맞은 것은?", answers: ["표현 자체에 모순이 있음", "의미를 강조하는 효과가 있음", "주로 웃음을 유발함"], correct: 1 }, { question: "다음 중 역설적 표현이 아닌 것은?", answers: ["소리 없는 아우성", "찬란한 슬픔의 봄", "죽어도 아니 눈물 흘리우리다"], correct: 2 }, { question: "<먼 후일>의 주제로 가장 적절한 것은?", answers: ["이별의 슬픔 극복 의지", "떠난 임에 대한 변치 않는 사랑", "새로운 사랑에 대한 기대"], correct: 1 }, { question: "<독은 아름답다>의 화자가 대상을 바라보는 태도는?", answers: ["일반적 통념을 뒤집어 가치를 발견함", "대상의 부정적인 면을 비판함", "대상을 객관적으로 관찰함"], correct: 0 }, { question: "운율의 효과로 적절하지 않은 것은?", answers: ["리듬감을 형성한다", "주제를 부각시킨다", "내용을 이해하기 어렵게 만든다"], correct: 2 }, { question: "반어법의 효과로 가장 적절한 것은?", answers: ["논리적인 인상을 준다", "화자의 의도를 반대로 표현해 강조한다", "표현 자체의 모순으로 진실을 드러낸다"], correct: 1 }, { question: "역설법의 효과로 가장 적절한 것은?", answers: ["독자의 주의를 끌고 참신한 느낌을 준다", "내용을 직설적으로 전달한다", "화자의 감정을 숨긴다"], correct: 0 }, { question: "<먼 후일>의 작가 김소월의 시의 주된 경향은?", answers: ["현실 비판", "민족의 정한(恨)", "도시적 감성"], correct: 1 }, { question: "'결별이 이룩하는 축복'이라는 표현은 어떤 기법에 해당하나요?", answers: ["반어", "역설", "풍자"], correct: 1 }, { question: "반어와 역설의 차이점은 무엇인가요?", answers: ["반어는 모순이 없고, 역설은 표현 자체에 모순이 있다", "반어는 시에만, 역설은 소설에만 쓰인다", "반어는 긍정적, 역설은 부정적 의미를 갖는다"], correct: 0 }, { question: "<독은 아름답다>의 1~4연에 공통적으로 나타나는 구조는?", answers: ["부정적 속성 -> 긍정적 가치 발견", "긍정적 속성 -> 부정적 가치 발견", "시간의 흐름에 따른 변화"], correct: 0 }, { question: "<먼 후일>에서 '오늘도 어제도 아니 잊고'라는 구절의 역할은?", answers: ["'잊었노라'가 반어임을 암시", "화자가 거짓말쟁이임을 증명", "시의 운율을 파괴"], correct: 0 }, { question: "<독은 아름답다>의 궁극적인 주제는 무엇과 관련이 깊은가요?", answers: ["자연 보호", "생명의 소중함과 사랑", "친구와의 우정"], correct: 1 }]
+            },
+            chapter_4_2: {
+                name: "4. (2) 양반전",
+                questions: [ { question: "인물의 부정적인 면이나 사회의 부조리를 간접적으로 비판하며 웃음을 유발하는 표현 방법은?", answers: ["반어", "역설", "풍자"], correct: 2 }, { question: "<양반전>의 주된 비판 대상은 누구인가요?", answers: ["평민", "상인", "양반 계층"], correct: 2 }, { question: "소설 속 양반이 겪는 가장 큰 문제는 무엇이었나요?", answers: ["자존심 문제", "관아의 곡식을 갚지 못하는 것", "아내와의 불화"], correct: 1 }, { question: "양반의 아내가 '양반은 한 푼어치도 안 되는구려!'라고 말한 이유는?", answers: ["양반을 존경해서", "양반의 경제적 무능을 비판하며", "남편을 위로하려고"], correct: 1 }, { question: "마을의 부자가 양반 신분을 사려고 한 이유는 무엇인가요?", answers: ["양반이 불쌍해서", "평민으로서 겪는 수모를 벗어나고 싶어서", "군수의 명령 때문에"], correct: 1 }, { question: "군수가 양반 신분 매매 증서를 만들어 주겠다고 한 이유는?", answers: ["돈을 벌기 위해", "훗날 소송의 빌미가 될 것을 막기 위해", "부자가 불쌍해서"], correct: 1 }, { question: "첫 번째 매매 증서가 주로 다루고 있는 내용은 무엇인가요?", answers: ["양반이 누릴 수 있는 특권", "양반이 지켜야 할 허례허식", "돈 버는 방법"], correct: 1 }, { question: "첫 번째 증서의 내용을 들은 부자가 증서를 고쳐달라고 한 이유는?", answers: ["내용이 너무 어려워서", "자신에게 이익이 없다고 생각해서", "글씨가 마음에 안 들어서"], correct: 1 }, { question: "두 번째 매매 증서가 주로 다루고 있는 내용은 무엇인가요?", answers: ["양반의 의무", "양반의 부당한 특권과 횡포", "공부하는 방법"], correct: 1 }, { question: "두 번째 증서의 내용을 들은 부자가 양반 되기를 포기하며 양반을 무엇이라고 말했나요?", answers: ["신선", "도둑놈", "바보"], correct: 1 }, { question: "이 소설을 통해 알 수 있는 조선 후기 사회의 모습이 아닌 것은?", answers: ["신분제가 흔들리고 있었다", "돈으로 신분을 살 수 있었다", "양반의 권위가 매우 높았다"], correct: 2 }, { question: "첫 번째 매매 증서를 통해 작가가 풍자하려는 양반의 모습은?", answers: ["횡포를 부리는 모습", "허례허식에 얽매인 모습", "경제적으로 유능한 모습"], correct: 1 }, { question: "두 번째 매매 증서를 통해 작가가 풍자하려는 양반의 모습은?", answers: ["백성을 착취하는 부도덕한 모습", "학문에만 정진하는 모습", "체면을 중시하는 모습"], correct: 0 }, { question: "이 작품의 작가 박지원은 어떤 사상가 집단에 속했나요?", answers: ["주자학파", "북학파 실학자", "성리학파"], correct: 1 }, { question: "부자가 양반이 되기를 포기한 결정적인 이유는?", answers: ["양반이 되는 것이 너무 비싸서", "양반의 삶이 재미없어 보여서", "양반의 부도덕한 실체를 알게 되어서"], correct: 2 }, { question: "군수가 부자를 '군자답구나'라고 칭찬한 이유는 무엇인가요?", answers: ["정말로 훌륭해서", "부자의 돈을 이용하려고", "반어적으로 비꼬기 위해"], correct: 2 }, { question: "양반이 환자 문제로 곤경에 처했을 때 보인 태도는?", answers: ["적극적으로 해결책을 찾음", "밤낮으로 울기만 함", "부자에게 도움을 청함"], correct: 1 }, { question: "풍자의 효과로 적절하지 않은 것은?", answers: ["대상을 직접적으로 비판한다", "독자에게 웃음을 준다", "비판 의식을 갖게 한다"], correct: 0 }, { question: "이 소설에서 '양반'이라는 단어의 의미가 어떻게 변하나요?", answers: ["존경의 대상 -> 경멸의 대상", "경멸의 대상 -> 존경의 대상", "변화 없음"], correct: 0 }, { question: "군수가 양반과 부자를 관아에 부를 때, 누구를 더 높은 자리에 앉혔나요?", answers: ["양반", "부자", "같은 자리에 앉힘"], correct: 1 }, { question: "첫 번째 증서에 따르면, 양반은 아무리 더워도 무엇을 벗으면 안되나요?", answers: ["갓", "두루마기", "버선"], correct: 2 }, { question: "두 번째 증서에 따르면, 양반은 이웃집의 무엇을 마음대로 가져다 쓸 수 있나요?", answers: ["닭", "소", "농기구"], correct: 1 }, { question: "이 작품의 공간적 배경은 어디인가요?", answers: ["강원도 정선군", "한양", "평안도"], correct: 0 }, { question: "작가는 양반의 모습을 우스꽝스럽게 그려냄으로써 무엇을 유발하나요?", answers: ["슬픔", "해학(웃음)", "공포"], correct: 1 }, { question: "결국 이 소설은 조선 시대 어떤 제도의 문제점을 비판하고 있나요?", answers: ["과거 제도", "신분 제도", "조세 제도"], correct: 1 }]
+            },
+            chapter_4_3: {
+                name: "4. (3) 다양한 표현",
+                questions: [ { question: "글을 쓸 때 다양한 표현을 사용하면 얻는 효과가 아닌 것은?", answers: ["내용을 참신하게 드러냄", "글의 분량을 늘릴 수 있음", "읽는 이의 기억에 오래 남음"], correct: 1 }, { question: "다음 중 속담에 해당하는 것은?", answers: ["발이 넓다", "가는 날이 장날이다", "그림의 떡"], correct: 1 }, { question: "다음 중 관용구에 해당하는 것은?", answers: ["손이 크다", "원숭이도 나무에서 떨어진다", "하늘의 별 따기"], correct: 0 }, { question: "'몹시 안타깝고 초조하다'는 의미의 관용구는?", answers: ["애가 타다", "입이 무겁다", "눈이 높다"], correct: 0 }, { question: "다음 문장에서 사용된 표현법은? '내 마음은 호수요.'", answers: ["직유법", "은유법", "의인법"], correct: 1 }, { question: "글쓴이가 슬기가 없어 외롭다는 마음을 무엇에 비유했나요?", answers: ["참외", "김빠진 탄산음료", "그림자"], correct: 0 }, { question: "참신한 표현을 만들기 위한 방법으로 적절하지 않은 것은?", answers: ["낯설게 보기", "다른 사람의 표현을 그대로 따라 쓰기", "자신만의 개성적인 비유 사용하기"], correct: 1 }, { question: "명언을 인용했을 때의 효과로 가장 적절한 것은?", answers: ["글의 신뢰성과 설득력을 높인다", "글을 더 재미있게 만든다", "글의 길이를 짧게 줄인다"], correct: 0 }, { question: "'남을 지나치게 칭찬하거나 추어올려 주다'라는 의미의 관용구는?", answers: ["발이 넓다", "손이 크다", "비행기를 태우다"], correct: 2 }, { question: "글쓴이가 슬기가 없는 축구 경기를 무엇에 비유했나요?", answers: ["참외", "김빠진 탄산음료", "그림자"], correct: 1 }, { question: "'슬픔'을 '길다'고 표현한 시의 구절은 어떤 표현 방식에 해당하나요?", answers: ["추상적 개념의 구체화", "반어법", "역설법"], correct: 0 }, { question: "글쓰기에서 '관용 표현'을 사용하는 주된 이유는?", answers: ["생각이나 느낌을 간결하고 효과적으로 표현하기 위해", "글을 어렵게 만들어 유식해 보이기 위해", "문법에 맞는 글을 쓰기 위해"], correct: 0 }, { question: "다음 중 격언(명언)에 해당하는 것은?", answers: ["시간은 금이다", "발 없는 말이 천 리 간다", "국물이 끝내줘요"], correct: 0 }, { question: "글쓴이는 슬기를 '흥 부자'라고 불렀습니다. 이 표현의 의미는 무엇일까요?", answers: ["돈이 많은 부자", "흥이 많은 사람", "노래를 잘하는 사람"], correct: 1 }, { question: "글쓴이가 다리를 다쳤을 때 슬기가 늘 곁에 있었던 모습을 무엇에 비유했나요?", answers: ["그림자", "천사", "보디가드"], correct: 0 }, { question: "다음 중 긍정적 의미로 사용되는 관용구가 아닌 것은?", answers: ["손발이 맞다", "바가지를 긁다", "눈에 콩깍지가 씌다"], correct: 1 }, { question: "속담 '백지장도 맞들면 낫다'의 의미는?", answers: ["협동의 중요성", "청결의 중요성", "정직의 중요성"], correct: 0 }, { question: "다음 중 비유적 표현이 사용되지 않은 문장은?", answers: ["구름은 흰 양 떼처럼 떠다녔다", "그는 거북이처럼 느리다", "나는 오늘 학교에 갔다"], correct: 2 }, { question: "글의 표현을 다채롭게 하기 위한 방법으로 거리가 먼 것은?", answers: ["다양한 어휘 사용", "한 가지 문장 구조 반복", "속담, 격언 활용"], correct: 1 }, { question: "'매우 기쁘다'는 뜻을 가진 관용구로 적절한 것은?", answers: ["가슴을 치다", "날아갈 듯하다", "기가 막히다"], correct: 1 }, { question: "글쓴이가 편지 말미에 인용한 명언의 내용은 무엇에 대한 것인가요?", answers: ["우정의 소중함", "시간의 중요성", "직접 만나 나누는 대화의 가치"], correct: 2 }, { question: "자신의 생각을 효과적으로 전달하기 위해 사용하는 표현 전략이 아닌 것은?", answers: ["비유하기", "인용하기", "과장하기"], correct: 2 }, { question: "다음 중 '참신한 표현'의 예로 가장 적절한 것은?", answers: ["사과 같은 내 얼굴", "내 동생은 잠꾸러기다", "내 그리움은 전파를 타고 간다"], correct: 2 }, { question: "'발이 넓다'는 관용구의 뜻은?", answers: ["발이 크다", "사귀어 아는 사람이 많다", "걸음이 빠르다"], correct: 1 }, { question: "다양한 표현을 사용한 글의 장점으로 옳지 않은 것은?", answers: ["독자의 이해를 돕는다", "표현하고자 하는 바를 정확하게 전달한다", "글을 이해하기 어렵게 만든다"], correct: 2 }]
+            }
         };
-        let quizData = [];
-        let carPosition, score, currentQuestionIndex, gameLoopId, playerName, selectedChapterKey;
+        
+        let carPosition, score, currentQuestionIndex, gameLoopId, playerName, selectedUnit, selectedUnitName;
         let isGameActive = false;
         let questionInProgress = false;
+        let quizData = [];
 
         function init() {
-            carPosition = 1; 
-            score = 0; 
-            currentQuestionIndex = 0;
-            isGameActive = true; 
-            questionInProgress = false;
+            carPosition = 1; score = 0; currentQuestionIndex = 0;
+            isGameActive = true; questionInProgress = false;
+            
+            const chapterData = allQuizData[selectedUnit];
+            quizData = [...chapterData.questions]; // 선택된 단원의 문제 복사
+            selectedUnitName = chapterData.name;
 
             playerInfo.classList.remove('hidden');
             playerNameDisplay.textContent = playerName;
             roadLines.forEach(line => line.style.animationPlayState = 'running');
-            
             updateScore();
             shuffleQuiz();
             loadQuestion();
             updateCarPosition();
-
             startScreen.classList.add('hidden');
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             gameLoop();
@@ -396,70 +236,55 @@
         
         function gameLoop() {
             if (!isGameActive) return;
-
             const carRect = car.getBoundingClientRect();
             const answersRect = answersContainer.getBoundingClientRect();
-
-            // 정답 블록이 자동차 위치에 도달했는지 확인
             if (questionInProgress && answersRect.bottom > carRect.top && answersRect.top < carRect.bottom) {
                 handleCollision();
             }
-
-            // 정답 블록을 놓쳤는지 확인 (화면 밖으로 나갔을 때)
             if (questionInProgress && answersRect.top > window.innerHeight) {
-                handleCollision(true); // missed = true
+                handleCollision(true); // 놓친 경우
             }
-
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
         function handleCollision(missed = false) {
             if (!questionInProgress) return;
-            questionInProgress = false; 
+            questionInProgress = false;  
             answersContainer.style.animationPlayState = 'paused';
-
+            
             const currentQuiz = quizData[currentQuestionIndex];
             const correctGate = answersContainer.children[currentQuiz.correct];
 
             if (missed) {
-                // 문제를 놓쳤을 경우
-                if (correctGate) correctGate.classList.replace('bg-indigo-500', 'bg-yellow-500');
+                if (correctGate) correctGate.classList.replace('bg-blue-500', 'bg-yellow-500');
                 playSound('incorrect');
             } else {
-                // 문제에 충돌했을 경우
                 if (carPosition === currentQuiz.correct) {
-                    // 정답
                     score += 5;
                     updateScore();
-                    correctGate.classList.replace('bg-indigo-500', 'bg-green-500');
+                    correctGate.classList.replace('bg-blue-500', 'bg-green-500');
                     playSound('correct');
                 } else {
-                    // 오답
                     const wrongGate = answersContainer.children[carPosition];
-                    if (wrongGate) wrongGate.classList.replace('bg-indigo-500', 'bg-red-600');
-                    if (correctGate) correctGate.classList.replace('bg-indigo-500', 'bg-green-500'); // 정답 위치 표시
+                    if (wrongGate) wrongGate.classList.replace('bg-blue-500', 'bg-red-600');
+                    if (correctGate) correctGate.classList.replace('bg-blue-500', 'bg-green-500');
                     playSound('incorrect');
                 }
             }
-            
             currentQuestionIndex++;
-            setTimeout(loadQuestion, 1500); // 다음 문제 로딩 전 1.5초 대기
+            setTimeout(loadQuestion, 1500); // 다음 문제 로딩 시간
         }
 
-        // '전진' 버튼으로 즉시 정답 확인
         function checkAnswerNow() {
             if (!questionInProgress) return;
-            // 애니메이션을 빠르게 끝내서 바로 충돌 판정을 유도
-            answersContainer.style.animationDuration = '0.2s';
+            handleCollision(false);
         }
 
         function shuffleQuiz() {
-            let originalQuizData = [...allQuizzes[selectedChapterKey]];
-            for (let i = originalQuizData.length - 1; i > 0; i--) {
+            for (let i = quizData.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [originalQuizData[i], originalQuizData[j]] = [originalQuizData[j], originalQuizData[i]];
+                [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
             }
-            quizData = originalQuizData.slice(0, 25); // 25문제만 선택
         }
 
         function loadQuestion() {
@@ -467,28 +292,19 @@
                 endGame();
                 return;
             }
-
             questionInProgress = true;
             const currentQuiz = quizData[currentQuestionIndex];
             questionEl.textContent = `Q${currentQuestionIndex + 1}. ${currentQuiz.question}`;
             answersContainer.innerHTML = '';
-
             currentQuiz.answers.forEach((answer) => {
                 const answerEl = document.createElement('div');
-                answerEl.className = 'w-1/3 h-full flex items-center justify-center text-white text-base md:text-lg font-bold p-2 text-center bg-indigo-500 bg-opacity-75 border-2 border-indigo-300 rounded-lg';
+                answerEl.className = 'w-1/3 h-full flex items-center justify-center text-white text-base md:text-lg font-bold p-2 text-center bg-blue-500 bg-opacity-75 border-2 border-blue-300 rounded-lg';
                 answerEl.textContent = answer;
                 answersContainer.appendChild(answerEl);
             });
-
-            // FIX: 애니메이션 재시작 로직 수정
-            // 이전에 설정된 인라인 스타일(animation-play-state, animation-duration 등)을 모두 초기화합니다.
-            answersContainer.style.animation = '';
-
-            // 애니메이션 클래스를 제거했다가 다시 추가하여 애니메이션을 재시작합니다.
             answersContainer.classList.remove('falling');
-            // 브라우저가 스타일 변경을 감지하도록 강제 리플로우(reflow)를 발생시킵니다.
-            void answersContainer.offsetWidth;
-            // 애니메이션 클래스를 다시 추가합니다.
+            void answersContainer.offsetWidth;  
+            answersContainer.style.animationPlayState = 'running';
             answersContainer.classList.add('falling');
         }
         
@@ -497,18 +313,17 @@
             cancelAnimationFrame(gameLoopId);
             roadLines.forEach(line => line.style.animationPlayState = 'paused');
             
-            // 구글 시트에 점수 전송
-            const selectedChapterText = chapterSelect.options[chapterSelect.selectedIndex].text;
-            await saveScoreToGoogleSheet(playerName, score, selectedChapterText);
-
+            // 구글 시트에 점수 저장
+            await saveScoreToGoogleSheet(playerName, score, selectedUnitName);
+            
             questionEl.textContent = `퀴즈 완료! 최종 점수: ${score}점`;
             answersContainer.innerHTML = '';
             playerInfo.classList.add('hidden');
-            
             startTitle.textContent = "게임 클리어!";
             startDesc.innerHTML = `최종 점수: <span class="text-2xl text-white font-bold">${score}</span>점`;
             startButton.textContent = "다시 시작";
-            
+            nameInputContainer.classList.remove('hidden');
+            unitSelectionContainer.classList.remove('hidden');
             startScreen.classList.remove('hidden');
         }
 
@@ -528,28 +343,39 @@
             scoreEl.textContent = score;
         }
 
-        // --- 구글 시트 연동 ---
-        async function saveScoreToGoogleSheet(name, score, chapter) {
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwhXoxJurzs-MTVSgAdD-e4knCNTMlkqkVkkGT949bqdKKGHZS5BxEMGYYndAJgFHbow/exec";
-            
+        async function saveScoreToGoogleSheet(name, score, unit) {
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbwwhXoxJurzs-MTVSgAdD-e4knCNTMlkqkVkkGT949bqdKKGHZS5BxEMGYYndAJgFHbow/exec';
             const formData = new FormData();
-            formData.append('timestamp', new Date().toLocaleString("ko-KR"));
             formData.append('name', name);
-            formData.append('chapter', chapter);
             formData.append('score', score);
+            formData.append('unit', unit);
+            formData.append('timestamp', new Date().toLocaleString("ko-KR"));
 
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                if(response.ok) {
-                    console.log("점수 전송 성공!");
+                const response = await fetch(scriptURL, { method: 'POST', body: formData });
+                if (response.ok) {
+                    console.log('점수 저장 성공!');
                 } else {
-                    console.error("점수 전송 실패:", response.statusText);
+                    console.error('점수 저장 실패:', response.statusText);
                 }
-            } catch(e) {
-                console.error("점수 전송 중 오류 발생:", e);
+            } catch (error) {
+                console.error('오류 발생!', error.message);
+            }
+        }
+        
+        function createUnitButtons() {
+            for (const unitKey in allQuizData) {
+                const unit = allQuizData[unitKey];
+                const button = document.createElement('button');
+                button.className = 'unit-btn bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg text-lg active:bg-indigo-700 transition-all duration-200';
+                button.textContent = unit.name;
+                button.dataset.unit = unitKey;
+                button.addEventListener('click', () => {
+                    selectedUnit = unitKey;
+                    document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                });
+                unitButtonsContainer.appendChild(button);
             }
         }
 
@@ -557,23 +383,14 @@
         startButton.addEventListener('click', () => {
             setupAudio();
             playerName = playerNameInput.value.trim();
-            selectedChapterKey = chapterSelect.value;
-
-            if (!selectedChapterKey) {
-                alert("먼저 단원을 선택해주세요!");
+            if (!selectedUnit) {
+                alert("퀴즈 단원을 선택해주세요!");
                 return;
             }
-
             if (!playerName) {
-                playerNameInput.placeholder = "이름을 꼭 입력해주세요!";
-                playerNameInput.classList.add('border-red-500');
-                setTimeout(() => {
-                    playerNameInput.classList.remove('border-red-500');
-                    playerNameInput.placeholder = "이름";
-                }, 1500);
+                alert("이름을 입력해주세요!");
                 return;
             }
-            
             init();
         });
 
@@ -583,7 +400,7 @@
                 else if (e.key === 'ArrowRight') moveCar('right');
                 else if (e.key === 'ArrowUp' || e.key === ' ') {
                     e.preventDefault();
-                    checkAnswerNow(); // 즉시 정답 확인
+                    checkAnswerNow();
                 }
             } else if (e.key === 'Enter') {
                 startButton.click();
@@ -598,6 +415,9 @@
             if (isGameActive) updateCarPosition();
         });
         
+        // 초기화 함수 호출
+        createUnitButtons();
+
     </script>
 </body>
 </html>
